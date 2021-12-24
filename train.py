@@ -1,4 +1,4 @@
-from model import AlexNet
+from model import VGG
 
 import torch
 import torchvision
@@ -32,7 +32,7 @@ def train_cnn(model,train_loader,num_epochs, optimizer, device):
     PATH = './cnn.pth'
     torch.save(model.state_dict(), args.file)
 
-def accuracy(model, test_loader):
+def accuracy(model, test_loader, device):
 
     model.eval()
     classes = ('plane', 'car', 'bird', 'cat',
@@ -71,35 +71,30 @@ def main():
     # Device configuration
     device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
 
-    model = AlexNet().to(device)
+    model = VGG("VGG16").to(device)
     transform = transforms.Compose(
     [transforms.ToTensor(),
-     transforms.Normalize((0.5, 0.5, 0.5), (0.5, 0.5, 0.5))])
-
-    batch_size = 16
+    transforms.Normalize((0.5, 0.5, 0.5), (0.5, 0.5, 0.5))])
 
     print("Loading datasets...")
 
     trainset = torchvision.datasets.CIFAR10(root='./data', train=True,
                                             download=True, transform=transform)
 
-    trainloader = torch.utils.data.DataLoader(trainset, batch_size=batch_size,
+    trainloader = torch.utils.data.DataLoader(trainset, batch_size=128,
                                             shuffle=True)
 
     testset = torchvision.datasets.CIFAR10(root='./data', train=False,
                                         download=True, transform=transform)
 
-    testloader = torch.utils.data.DataLoader(testset, batch_size=batch_size,
+    testloader = torch.utils.data.DataLoader(testset, batch_size=100,
                                             shuffle=False)
 
-    classes = ('plane', 'car', 'bird', 'cat',
-           'deer', 'dog', 'frog', 'horse', 'ship', 'truck')
-
     print("Starting training...")
-    train_cnn(model,trainloader, num_epochs= 5, optimizer= torch.optim.Adam, device= device)
+    train_cnn(model,trainloader, num_epochs= 30, optimizer= torch.optim.Adam, device= device)
 
     print("Calculating accuracy...")
-    accuracy(model, val_loader)
+    accuracy(model, val_loader,device = device)
 
 if __name__ == "__main__":
     main()

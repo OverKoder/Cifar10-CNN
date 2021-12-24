@@ -1,61 +1,46 @@
+import torch
 import torch.nn as nn
-from torch import flatten
-import torch.nn.functional as F
-
-# AlexNet CNN architecture (slightly modified)
-class AlexNet(nn.Module):
-
-    def __init__(self):
-        super(AlexNet, self).__init__()
-
-        # Convolutional layers (RGB input, 3 input channels)        
-        self.conv1 = nn.Conv2d(in_channels=3, out_channels= 96, kernel_size= 7, stride=2, padding=0 )
-        self.conv2 = nn.Conv2d(in_channels=96, out_channels=256, kernel_size=5, stride=1, padding= 2)
-        self.conv3 = nn.Conv2d(in_channels=256, out_channels=384, kernel_size=3, stride=1, padding= 1)
-        self.conv4 = nn.Conv2d(in_channels=384, out_channels=384, kernel_size=3, stride=1, padding=1)
-        self.conv5 = nn.Conv2d(in_channels=384, out_channels=256, kernel_size=3, stride=1, padding=1)
-
-        # Linear layers (out_features=10 because there are only 10 classes)
-        self.full1  = nn.Linear(in_features= 256 * 5 * 5, out_features= 4096)
-        self.full2  = nn.Linear(in_features= 4096, out_features= 4096)
-        self.full3 = nn.Linear(in_features=4096 , out_features=10)
-
-        # Pooling
-        self.maxpool = nn.MaxPool2d(kernel_size=3, stride=1)
-        self.maxpool2 = nn.MaxPool2d(kernel_size=3, stride=2, padding=1)
 
 
+cfg = {
+    'VGG11': [64, 'M', 128, 'M', 256, 256, 'M', 512, 512, 'M', 512, 512, 'M'],
+    'VGG13': [64, 64, 'M', 128, 128, 'M', 256, 256, 'M', 512, 512, 'M', 512, 512, 'M'],
+    'VGG16': [64, 64, 'M', 128, 128, 'M', 256, 256, 256, 'M', 512, 512, 512, 'M', 512, 512, 512, 'M'],
+    'VGG19': [64, 64, 'M', 128, 128, 'M', 256, 256, 256, 256, 'M', 512, 512, 512, 512, 'M', 512, 512, 512, 512, 'M'],
+}
 
-    def forward(self,x):
 
-        x = self.conv1(x)
-        x = F.relu(x)
-        x = self.maxpool(x)
+class VGG(nn.Module):
+    def __init__(self, vgg_name):
+        super(VGG, self).__init__()
+        self.features = self._make_layers(cfg[vgg_name])
+        self.classifier = nn.Linear(512, 10)
 
-        x = self.conv2(x)
-        x = F.relu(x)
-        x = self.maxpool(x)
+    def forward(self, x):
+        out = self.features(x)
+        out = out.view(out.size(0), -1)
+        out = self.classifier(out)
+        return out
 
-        x = self.conv3(x)
-        x = F.relu(x)
+    def _make_layers(self, cfg):
+        layers = []
+        in_channels = 3
+        for x in cfg:
+            if x == 'M':
+                layers += [nn.MaxPool2d(kernel_size=2, stride=2)]
+            else:
+                layers += [nn.Conv2d(in_channels, x, kernel_size=3, padding=1),
+                           nn.BatchNorm2d(x),
+                           nn.ReLU(inplace=True)]
+                in_channels = x
+        layers += [nn.AvgPool2d(kernel_size=1, stride=1)]
+        return nn.Sequential(*layers)
 
-        x = self.conv4(x)
-        x = F.relu(x)
 
-        x = self.conv5(x)
-        x = F.relu(x)
+def test():
+    net = VGG('VGG11')
+    x = torch.randn(2,3,32,32)
+    y = net(x)
+    print(y.size())
 
-        x = self.maxpool2(x)
-
-        # Flatten tensor to enter linear layer
-        x = flatten(x , 1)
-
-        x = self.full1(x)
-        x = F.relu(x)     
-           
-        x = self.full2(x)
-        x = F.relu(x)     
-
-        x = self.full3(x)
-
-        return x
+# test()
