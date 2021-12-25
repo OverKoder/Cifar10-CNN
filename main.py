@@ -15,7 +15,7 @@ from utils import progress_bar, interval95
 import matplotlib.pyplot as plt
 
 # Training function
-def train(epoch):
+def train(epoch, model, optimizer):
     print('-----=| Epoch %d |=-----' % epoch)
 
     # Set model to train
@@ -44,7 +44,7 @@ def train(epoch):
     return train_loss, 100.*correct/total
 
 
-def test(epoch):
+def test(epoch,model, optimizer):
 
     global best_acc
 
@@ -136,11 +136,11 @@ def main():
 
     for epoch in range(start_epoch, start_epoch+200):
 
-        train_loss, train_acc = train(epoch)
+        train_loss, train_acc = train(epoch,model,optimizer)
         train_loss_list.append(train_loss)
         train_acc_list.append(train_acc)
 
-        test_loss, test_acc = test(epoch)
+        test_loss, test_acc = test(epoch,model,optimizer)
         test_loss_list.append(test_loss)
         test_acc_list.append(test_acc)       
 
