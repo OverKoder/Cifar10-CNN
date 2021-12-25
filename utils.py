@@ -7,8 +7,12 @@ TOTAL_BAR_LENGTH = 65
 last_time = time.time()
 begin_time = last_time
 
-_, term_width = os.popen('stty size', 'r').read().split()
-term_width = int(term_width)
+# Uncomment both lines if you want to see the output in the terminal
+# _, term_width = os.popen('stty size', 'r').read().split()
+# term_width = int(term_width)
+
+# Comment this next linei f you want to see the output in the terminal
+term_width = 80
 
 def progress_bar(current, total, msg=None):
     global last_time, begin_time

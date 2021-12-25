@@ -114,8 +114,6 @@ def test(epoch):
 
             progress_bar(batch_idx, len(testloader), 'Loss: %.3f | Acc: %.3f%% (%d/%d)'
                          % (test_loss/(batch_idx+1), 100.*correct/total, correct, total))
-    
-    return test_loss, 100.*correct/total
 
     # Save checkpoint.
     acc = 100.*correct/total
@@ -130,10 +128,12 @@ def test(epoch):
             os.mkdir('checkpoint')
         torch.save(state, './checkpoint/ckpt.pth')
         best_acc = acc
-
-def main():
+    
+    return test_loss, 100.*correct/total
 
     
+
+def main():
 
     axis = list(range(start_epoch, start_epoch+200))
     train_loss_list, test_loss_list = [], []
